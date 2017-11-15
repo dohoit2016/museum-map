@@ -1,0 +1,623 @@
+<link rel="stylesheet" type="text/css" href="../../asset/css/bootstrap/bootstrap-select.min.css"/>
+<link rel="stylesheet" type="text/css" href="../../asset/js/leaflet/leaflet.css"/>
+<link rel="stylesheet" type="text/css" href="../../asset/css/qgis2web.css">
+<link rel="stylesheet" type="text/css" href="../../asset/css/MarkerCluster.css" />
+<link rel="stylesheet" type="text/css" href="../../asset/css/MarkerCluster.Default.css" />
+<link rel="stylesheet" type="text/css" href="../../asset/js/leaflet/leaflet-search.css" />		
+<link rel="stylesheet" type="text/css" href="../../asset/js/leaflet/leaflet.draw.css" />
+<link rel="stylesheet" type="text/css" href="../../asset/js/leaflet/leaflet.measurecontrol.css" />
+<style>
+    html, body, #map {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+    }
+</style>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript" src="../../asset/js/leaflet/leaflet.js"></script>
+    <script type="text/javascript" src="../../asset/js/jquery/jquery/jquery.js"></script>
+    <script type="text/javascript" src="../../asset/js/jquery/bootstrap.min.js"></script>
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/leaflet-heat.js"></script> -->
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/leaflet.rotatedMarker.js"></script> -->
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/OSMBuildings-Leaflet.js"></script> -->
+    <script type="text/javascript" src="../../asset/js/leaflet/leaflet-hash.js"></script>
+    <script type="text/javascript" src="../../asset/js/leaflet/Autolinker.min.js"></script>
+    <script type="text/javascript" src="../../asset/js/leaflet/leaflet.draw.js"></script>
+    <script type="text/javascript" src="../../asset/js/leaflet/leaflet.draw-src.js"></script>
+
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/Leaflet.Draw.Event.js"></script> -->
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/leaflet-src.js"></script> -->
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/leaflet.measurecontrol.js"></script> -->
+    <!-- <script type="text/javascript" src="../../asset/js/leaflet/leaflet.markercluster.js"></script> -->
+    <script type="text/javascript" src="../../asset/js/leaflet/leaflet-search.js"></script>		/
+    <script src="data/dongbac0.js"></script>
+    <script src="data/VQGdongbac1.js"></script>
+    <script>
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        var map = L.map('map', {
+            // drawControl: true,
+            measureControl:true,
+            zoomControl:true, 
+            maxZoom:20, 
+            minZoom:1
+        }).fitBounds([[20.3705735977,103.440046635],[23.733527724,108.238291603]]);
+
+        var drawItems = new L.FeatureGroup();
+        map.addLayer(drawItems);
+        var drawControl = new L.Control.Draw({
+            position: 'bottomright',
+            draw: {
+                polygon: {
+                    allowIntersection: false,
+                    drawError: {
+                        color: '#e1e100', 
+                        message: '<strong>Oh snap!<strong> you can\'t draw that!'
+                    },
+                    shapeOptions: {
+                        color: '#97009c'
+                    }
+                },
+                polyline: false,
+                circle: false,
+                rectangle: true,
+                marker: false,
+            },
+            edit: {
+                featureGroup: drawItems,
+                remove: true
+            }
+        })
+
+        map.addControl(drawControl)
+
+        map.on("draw:created", function(event){
+            var layer = event.layer;
+            // layer.style.zIndex = 602;
+            map.addLayer(layer);
+            // L.geoJson(layer).addTo(map)
+        })
+        map.on("draw:deleted", function(event){
+            map.removeLayer(event.layer);
+        })
+
+        var hash = new L.Hash(map);
+        // map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        var feature_group = new L.featureGroup([]);
+        // var bounds_group = new L.featureGroup([]);
+        var raster_group = new L.LayerGroup([]);
+        function setBounds() {
+            map.setMaxBounds(map.getBounds());
+        }
+        
+        function pop_dongbac0(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Join_Count'] !== null ? Autolinker.link(String(feature.properties['Join_Count'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TARGET_FID'] !== null ? Autolinker.link(String(feature.properties['TARGET_FID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id'] !== null ? Autolinker.link(String(feature.properties['Id'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id_1'] !== null ? Autolinker.link(String(feature.properties['Id_1'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TINH'] !== null ? Autolinker.link(String(feature.properties['TINH'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MA_TINH'] !== null ? Autolinker.link(String(feature.properties['MA_TINH'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MA_VUNG'] !== null ? Autolinker.link(String(feature.properties['MA_VUNG'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VUNG'] !== null ? Autolinker.link(String(feature.properties['VUNG'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_ID'] !== null ? Autolinker.link(String(feature.properties['ET_ID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_X'] !== null ? Autolinker.link(String(feature.properties['ET_X'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_Y'] !== null ? Autolinker.link(String(feature.properties['ET_Y'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_dongbac0() {
+            return {
+                pane: 'pane_dongbac0',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(235,244,255,1.0)',
+            }
+        }
+        map.createPane('pane_dongbac0');
+        map.getPane('pane_dongbac0').style.zIndex = 19;
+        map.getPane('pane_dongbac0').style['mix-blend-mode'] = 'normal';
+        var layer_dongbac0 = new L.geoJson(json_dongbac0, {
+            pane: 'pane_dongbac0',
+            onEachFeature: pop_dongbac0,
+            style: style_dongbac0
+        });
+        // bounds_group.addLayer(layer_dongbac0);
+        feature_group.addLayer(layer_dongbac0);
+        function pop_VQGdongbac1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Join_Count'] !== null ? Autolinker.link(String(feature.properties['Join_Count'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TARGET_FID'] !== null ? Autolinker.link(String(feature.properties['TARGET_FID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id'] !== null ? Autolinker.link(String(feature.properties['Id'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Id_1'] !== null ? Autolinker.link(String(feature.properties['Id_1'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['AREA'] !== null ? Autolinker.link(String(feature.properties['AREA'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NAME'] !== null ? Autolinker.link(String(feature.properties['NAME'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NAMEVIET'] !== null ? Autolinker.link(String(feature.properties['NAMEVIET'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NameUTF8'] !== null ? Autolinker.link(String(feature.properties['NameUTF8'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CODE'] !== null ? Autolinker.link(String(feature.properties['CODE'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['TYPE'] !== null ? Autolinker.link(String(feature.properties['TYPE'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VCF'] !== null ? Autolinker.link(String(feature.properties['VCF'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SOURCE'] !== null ? Autolinker.link(String(feature.properties['SOURCE'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SCALE'] !== null ? Autolinker.link(String(feature.properties['SCALE'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CODE123'] !== null ? Autolinker.link(String(feature.properties['CODE123'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Note'] !== null ? Autolinker.link(String(feature.properties['Note'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_ID'] !== null ? Autolinker.link(String(feature.properties['ET_ID'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_X'] !== null ? Autolinker.link(String(feature.properties['ET_X'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ET_Y'] !== null ? Autolinker.link(String(feature.properties['ET_Y'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_VQGdongbac1(feature) {
+            switch(feature.properties['NAME']) {
+                case 'NULL':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(231,207,82,1.0)',
+                    }
+                    break;
+                case 'Ba Be':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(53,221,171,1.0)',
+                    }
+                    break;
+                case 'Bac Me':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(91,214,100,1.0)',
+                    }
+                    break;
+                case 'Bai Tu Long':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(125,207,112,1.0)',
+                    }
+                    break;
+                case 'Bat Dai Son':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(132,26,212,1.0)',
+                    }
+                    break;
+                case 'Cat Ba':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(70,234,116,1.0)',
+                    }
+                    break;
+                case 'Cham Chu':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(229,177,139,1.0)',
+                    }
+                    break;
+                case 'Dong Son Ky Thuong':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(203,28,136,1.0)',
+                    }
+                    break;
+                case 'Du Gia':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(134,139,231,1.0)',
+                }
+                    break;
+                case 'Hoang Lien':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(59,216,203,1.0)',
+                }
+                    break;
+                case 'Huu Lien':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(14,166,236,1.0)',
+                }
+                    break;
+                case 'Khe Ro':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(116,96,231,1.0)',
+                }
+                    break;
+                case 'Kim Hy':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(97,230,164,1.0)',
+                }
+                    break;
+                case 'Mu Cang Chai':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(191,91,221,1.0)',
+                }
+                    break;
+                case 'Na Hang':
+                    return {
+                    pane: 'pane_VQGdongbac1',
+                    opacity: 1,
+                    color: 'rgba(0,0,0,1.0)',
+                    dashArray: '',
+                    lineCap: 'butt',
+                    lineJoin: 'miter',
+                    weight: 1.0, 
+                    fillOpacity: 1,
+                    fillColor: 'rgba(144,239,93,1.0)',
+                }
+                    break;
+                case 'Na Hau':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(187,209,120,1.0)',
+                    }
+                    break;
+                case 'Nam Xuan Lac':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(164,202,116,1.0)',
+                    }
+                    break;
+                case 'Nui Pia Oac':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(229,27,108,1.0)',
+                    }
+                    break;
+                case 'Phong Quang':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(115,144,225,1.0)',
+                    }
+                    break;
+                case 'Phuong Hoang':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(204,114,89,1.0)',
+                    }
+                    break;
+                case 'Ta Sua':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(208,120,120,1.0)',
+                    }
+                    break;
+                case 'Tam Dao':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(81,198,213,1.0)',
+                    }
+                    break;
+                case 'Tay Con Linh':
+                    return {
+                        pane: 'pane_VQGdongbac1',
+                        opacity: 1,
+                        color: 'rgba(0,0,0,1.0)',
+                        dashArray: '',
+                        lineCap: 'butt',
+                        lineJoin: 'miter',
+                        weight: 1.0, 
+                        fillOpacity: 1,
+                        fillColor: 'rgba(214,218,92,1.0)',
+                    }
+                    break;
+                case 'Tay Yen Tu':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(141,100,219,1.0)',
+            }
+                    break;
+                case 'Than Xa':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(56,126,207,1.0)',
+            }
+                    break;
+                case 'Trung Khanh':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(235,125,215,1.0)',
+            }
+                    break;
+                case 'Van Ban':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(230,184,104,1.0)',
+            }
+                    break;
+                case 'Xuan Son':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(200,69,202,1.0)',
+            }
+                    break;
+                case 'Yen Tu':
+                    return {
+                pane: 'pane_VQGdongbac1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(211,95,118,1.0)',
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_VQGdongbac1');
+        map.getPane('pane_VQGdongbac1').style.zIndex = 20;
+        map.getPane('pane_VQGdongbac1').style['mix-blend-mode'] = 'normal';
+        var layer_VQGdongbac1 = new L.geoJson(json_VQGdongbac1, {
+            pane: 'pane_VQGdongbac1',
+            onEachFeature: pop_VQGdongbac1,
+            style: style_VQGdongbac1
+        });
+        // bounds_group.addLayer(layer_VQGdongbac1);
+        feature_group.addLayer(layer_VQGdongbac1);
+        raster_group.addTo(map);
+        feature_group.addTo(map);
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'VQG_dongbac<br /><table><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_0.png" /></td><td></td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_BaBe1.png" /></td><td>Ba Be</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_BacMe2.png" /></td><td>Bac Me</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_BaiTuLong3.png" /></td><td>Bai Tu Long</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_BatDaiSon4.png" /></td><td>Bat Dai Son</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_CatBa5.png" /></td><td>Cat Ba</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_ChamChu6.png" /></td><td>Cham Chu</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_DongSonKyThuong7.png" /></td><td>Dong Son Ky Thuong</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_DuGia8.png" /></td><td>Du Gia</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_HoangLien9.png" /></td><td>Hoang Lien</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_HuuLien10.png" /></td><td>Huu Lien</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_KheRo11.png" /></td><td>Khe Ro</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_KimHy12.png" /></td><td>Kim Hy</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_MuCangChai13.png" /></td><td>Mu Cang Chai</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_NaHang14.png" /></td><td>Na Hang</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_NaHau15.png" /></td><td>Na Hau</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_NamXuanLac16.png" /></td><td>Nam Xuan Lac</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_NuiPiaOac17.png" /></td><td>Nui Pia Oac</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_PhongQuang18.png" /></td><td>Phong Quang</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_PhuongHoang19.png" /></td><td>Phuong Hoang</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_TaSua20.png" /></td><td>Ta Sua</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_TamDao21.png" /></td><td>Tam Dao</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_TayConLinh22.png" /></td><td>Tay Con Linh</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_TayYenTu23.png" /></td><td>Tay Yen Tu</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_ThanXa24.png" /></td><td>Than Xa</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_TrungKhanh25.png" /></td><td>Trung Khanh</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_VanBan26.png" /></td><td>Van Ban</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_XuanSon27.png" /></td><td>Xuan Son</td></tr><tr><td style="text-align: center;"><img src="legend/VQGdongbac1_YenTu28.png" /></td><td>Yen Tu</td></tr></table>': layer_VQGdongbac1,'<img src="legend/dongbac0.png" /> dongbac': layer_dongbac0,},{collapsed:true}).addTo(map);
+        setBounds();
+
+		map.addControl(new L.Control.Search({
+            layer: feature_group,
+            initial: true,
+            hideMarkerOnCollapse: true,
+            propertyName: 'NameUTF8'}));
+    </script>
+</body>
